@@ -17,7 +17,7 @@ pub struct MerkleTree<T> {
     pub algorithm: &'static Algorithm,
 
     /// The root of the inner binary tree
-    root: Tree<T>,
+    pub root: Tree<T>,
 
     /// The height of the tree
     height: usize,

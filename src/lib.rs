@@ -23,7 +23,7 @@ mod hashutils;
 pub use hashutils::Hashable;
 
 mod tree;
-pub use tree::{LeavesIterator, LeavesIntoIterator};
+pub use tree::{Tree, LeavesIterator, LeavesIntoIterator};
 
 #[cfg(feature = "serialization-protobuf")]
 #[allow(unused_qualifications)]
