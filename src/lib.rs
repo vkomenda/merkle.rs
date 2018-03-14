@@ -16,7 +16,7 @@ extern crate protobuf;
 mod merkletree;
 pub use merkletree::MerkleTree;
 
-mod proof;
+pub mod proof;
 pub use proof::Proof;
 
 mod hashutils;
