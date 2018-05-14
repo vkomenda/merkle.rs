@@ -9,9 +9,11 @@ use hashutils::HashUtils;
 
 /// An inclusion proof represent the fact that a `value` is a member
 /// of a `MerkleTree` with root hash `root_hash`, and hash function `algorithm`.
+#[cfg_attr(feature = "serialization-serde", derive(Serialize))]
 #[derive(Clone, Debug)]
 pub struct Proof<T> {
     /// The hashing algorithm used in the original `MerkleTree`
+    #[cfg_attr(feature = "serialization-serde", serde(skip))]
     pub algorithm: &'static Algorithm,
 
     /// The hash of the root of the original `MerkleTree`
@@ -101,12 +103,47 @@ impl<T> Proof<T> {
             }
         }
     }
+
+    /// Returns the proof data, omitting the algorithm.
+    pub fn into_data(self) -> ProofData<T> {
+        ProofData {
+            root_hash: self.root_hash,
+            lemma: self.lemma,
+            value: self.value,
+        }
+    }
 }
 
+/// A proof without the `algorithm`, for easy serialization and deserialization.
+#[cfg_attr(feature = "serialization-serde", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug)]
+pub struct ProofData<T> {
+    /// The hash of the root of the original `MerkleTree`
+    pub root_hash: Vec<u8>,
+
+    /// The first `Lemma` of the `Proof`
+    pub lemma: Lemma,
+
+    /// The value concerned by this `Proof`
+    pub value: T,
+}
+
+impl<T> ProofData<T> {
+    /// Returns the proof with this data and the given algorithm.
+    pub fn into_proof(self, algorithm: &'static Algorithm) -> Proof<T> {
+        Proof {
+            algorithm,
+            root_hash: self.root_hash,
+            lemma: self.lemma,
+            value: self.value,
+        }
+    }
+}
 
 /// A `Lemma` holds the hash of a node, the hash of its sibling node,
 /// and a sub lemma, whose `node_hash`, when combined with this `sibling_hash`
 /// must be equal to this `node_hash`.
+#[cfg_attr(feature = "serialization-serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Lemma {
     /// The hash of a node.
@@ -115,7 +152,7 @@ pub struct Lemma {
     /// recorded in the type is the direction of the sibling from the lemma
     /// node. The value is consequently located in the other direction.
     pub sibling_hash: Option<Positioned<Vec<u8>>>,
-     /// The hash of the child node under which the value IS located.
+    /// The hash of the child node under which the value IS located.
     pub sub_lemma: Option<Box<Lemma>>,
 }
 
@@ -178,6 +215,7 @@ impl Lemma {
 }
 
 /// Tags a value so that we know from which branch of a `Tree` (if any) it was found.
+#[cfg_attr(feature = "serialization-serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Positioned<T> {
     /// The value was found in the left branch
